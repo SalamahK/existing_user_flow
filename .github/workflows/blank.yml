@@ -1,28 +1,17 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI with Scandium
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
       # Ensure jq is installed for JSON parsing
@@ -35,34 +24,30 @@ jobs:
         run: |
           # Make the API request and store the response
           response=$(curl -X POST -H "Content-Type: application/json" -H "x-api-token: 2DzWQDTnUypocm0tNkzHIubrJUb4ZF" \
-            -d '{"project_id": "9d5e9b27-c3a6-423b-b1d4-ca9fb3cb7d3b", "suite_id": "9d6ab0a8-8842-4bce-b950-d50cf7ec52c2", "browser": "chrome", "screenshot": true, "strategy": "await", "variables": {}, "retry": 0}' \
+            -d '{"project_id": "9d5e9b27-c3a6-423b-b1d4-ca9fb3cb7d3b", "suite_id": "9d6aebbb-055c-4a82-b0be-dcdf5bc7c32c", "browser": "chrome", "screenshot": true, "strategy": "await", "variables": {}, "retry": 0}' \
             "https://scr.getscandium.com/suites/execute")
 
-          # Debug: Output the raw response to check if it's valid JSON
+          # Print the raw response for debugging
           echo "Raw response: $response"
 
-          # Check if the response is empty
-          if [ -z "$response" ]; then
-            echo "Error: No response from Scandium API."
-            exit 1
-          fi
+          # Check if the response is in JSON format using jq's error handling
+          if echo "$response" | jq . > /dev/null 2>&1; then
+            # Parse status and message if JSON is valid
+            status=$(echo "$response" | jq -r .data.result.status)
+            message=$(echo "$response" | jq -r .message)
 
-          # Attempt to parse the response
-          status=$(echo "$response" | jq -r .data.result.status)
-          message=$(echo "$response" | jq -r .message)
-
-          # Check if parsing succeeded by testing the presence of expected keys
-          if [ "$status" = "null" ]; then
-            echo "Error: Failed to parse JSON response. Response: $response"
-            exit 1
-          fi
-
-          # Process the test results
-          if [ "$status" = "success" ]; then
-            echo "Test ran successfully. Status: $status"
+            # Process the test results
+            if [ "$status" = "success" ]; then
+              echo "Test ran successfully. Status: $status"
+            else
+              echo "Test ran with failure. Status: $status. Message: $message"
+              exit 1
+            fi
           else
-            echo "Test ran with failure. Status: $status. Message: $message"
+            # Handle invalid JSON response
+            echo "Error: The response is not valid JSON. Full response:"
+            echo "$response"
             exit 1
           fi
         env:
-          CURL_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt # Set the CA certificates bundle path
+          CURL_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
