@@ -27,7 +27,7 @@ jobs:
 
       - name: Run Scandium Test
         run: |
-          response=$(curl -X POST -H "Content-Type: application/json" -H "x-api-token: 2DzWQDTnUypocm0tNkzHIubrJUb4ZF" -d '{"project_id": "9d5e9b27-c3a6-423b-b1d4-ca9fb3cb7d3b", "suite_id": "9d5fbb22-1419-4069-bba5-0d16619c6fda","browser": "chrome","screenshot": true,"strategy": "await","variables": {},"retry": 0}' "https://scr.getscandium.com/suites/execute")
+          response=$(curl -X POST -H "Content-Type: application/json" -H "x-api-token: 2DzWQDTnUypocm0tNkzHIubrJUb4ZF" -d '{"project_id": "9d5e9b27-c3a6-423b-b1d4-ca9fb3cb7d3b", "suite_id": "9d6ab0a8-8842-4bce-b950-d50cf7ec52c2","browser": "chrome","screenshot": true,"strategy": "await","variables": {},"retry": 0}' "https://scr.getscandium.com/suites/execute")
           status=$(echo "$response" | jq -r .data.result.status)
           message=$(echo "$response" | jq -r .message)
 
